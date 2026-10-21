@@ -1,30 +1,15 @@
-"""
-Vygeneruje ukázková data z výroby, na kterých jde analýzu vyzkoušet.
-
-Simuluje 8 balicích linek (PP-01 až PP-08) za posledních 7 dní ve třísměnném
-provozu. Vzniknou dva soubory:
-  data/vyroba.csv   – po hodinách: kolik minut linka běžela, kolik sáčků
-                      vyrobila a kolik z nich bylo vadných
-  data/prostoje.csv – jednotlivé zastávky linky s důvodem a délkou
-
-Do dat jsou schválně vložené tři problémy, které má analýza najít:
-  PP-03 – opakované krátké zastávky kvůli chybě váhy
-  PP-06 – víc vadných sáčků na noční směně
-  PP-07 – jedna dlouhá porucha podavače
-"""
-
 import csv
 import os
 import random
 from datetime import datetime, timedelta
 
-random.seed(42)  # stejná data při každém spuštění
+random.seed(42)
 
 LINKY = ["PP-%02d" % i for i in range(1, 9)]
-CILOVY_VYKON = 40  # sáčků za minutu, když linka jede naplno
+CILOVY_VYKON = 40  # sáčků za minutu
 DNY = 7
 
-# běžné důvody zastávek a jak dlouho obvykle trvají (minuty od–do)
+# důvod zastávky: (min, max) minut
 DUVODY = {
     "Prázdný zásobník dílků": (2, 6),
     "Zaseknutý dílek": (1, 4),
@@ -35,7 +20,6 @@ DUVODY = {
 
 
 def smena(hodina):
-    """Vrátí název směny podle hodiny dne."""
     if 6 <= hodina < 14:
         return "ranní"
     if 14 <= hodina < 22:
@@ -55,31 +39,29 @@ def main():
             cas = zacatek + timedelta(hours=h)
             stoji_minut = 0
 
-            # běžné náhodné zastávky: v průměru jedna za dvě hodiny
             if random.random() < 0.5:
                 duvod = random.choice(list(DUVODY))
                 minuty = random.randint(*DUVODY[duvod])
                 prostoje.append([linka, cas.isoformat(timespec="minutes"), duvod, minuty])
                 stoji_minut += minuty
 
-            # PP-03: váha se zasekává několikrát za hodinu
+            # PP-03 - chyba váhy několikrát za hodinu
             if linka == "PP-03":
                 for _ in range(random.randint(2, 5)):
                     minuty = random.randint(1, 2)
                     prostoje.append([linka, cas.isoformat(timespec="minutes"), "Chyba váhy", minuty])
                     stoji_minut += minuty
 
-            # PP-07: třetí den dlouhá porucha podavače (5 hodin v kuse)
+            # PP-07 - porucha podavače třetí den
             if linka == "PP-07" and 2 * 24 + 10 <= h < 2 * 24 + 15:
                 prostoje.append([linka, cas.isoformat(timespec="minutes"), "Porucha podavače", 60])
                 stoji_minut = 60
 
             bezi_minut = max(0, 60 - stoji_minut)
-            # linka nejede vždy naplno: 85–100 % cílového výkonu
             vyrobeno = int(bezi_minut * CILOVY_VYKON * random.uniform(0.85, 1.0))
 
             podil_vadnych = random.uniform(0.002, 0.01)
-            # PP-06: na noční směně je víc vadných sáčků
+            # PP-06 - víc vadných na noční
             if linka == "PP-06" and smena(cas.hour) == "noční":
                 podil_vadnych = random.uniform(0.04, 0.07)
             vadne = int(vyrobeno * podil_vadnych)

@@ -1,14 +1,3 @@
-"""
-Analýza výkonu balicích linek a automatický report.
-
-Načte data z výroby (data/vyroba.csv a data/prostoje.csv) do databáze SQLite,
-spočítá pro každou linku OEE, najde problémy, kterým by se měl někdo věnovat,
-a výsledek uloží jako přehledný HTML report (report.html).
-
-Spuštění:  python3 analyza.py
-Používá jen standardní knihovnu Pythonu, nic se nemusí instalovat.
-"""
-
 import csv
 import html
 import re
@@ -16,12 +5,9 @@ import sqlite3
 import statistics
 from datetime import datetime
 
-CILOVY_VYKON = 40  # sáčků za minutu při plném výkonu (stejné jako v generátoru dat)
+CILOVY_VYKON = 40  # sáčků za minutu
 
 
-# ---------------------------------------------------------------------------
-# 1) Načtení dat do SQLite
-# ---------------------------------------------------------------------------
 def nacti_data():
     db = sqlite3.connect(":memory:")
     db.execute("""CREATE TABLE vyroba (linka TEXT, cas TEXT, smena TEXT,
@@ -39,29 +25,23 @@ def nacti_data():
 
 
 def cesky_cislo(text):
-    """V textu nahradí desetinné tečky čárkami (1.5 → 1,5), jak se píše česky."""
     return re.sub(r"(?<=\d)\.(?=\d)", ",", text)
 
 
 def cesky_datum(text, rok=True):
-    """Z ISO data (2026-10-17...) udělá české „17. 10. 2026“."""
     d = datetime.fromisoformat(text)
     return "%d. %d. %d" % (d.day, d.month, d.year) if rok else "%d. %d." % (d.day, d.month)
 
 
-# ---------------------------------------------------------------------------
-# 2) Výpočty
-# ---------------------------------------------------------------------------
 def oee_linek(db):
-    """OEE = dostupnost × výkon × kvalita, pro každou linku zvlášť."""
     radky = db.execute("""
         SELECT linka, SUM(planovano_min), SUM(bezi_min), SUM(vyrobeno), SUM(vadne)
         FROM vyroba GROUP BY linka ORDER BY linka""").fetchall()
     vysledek = []
     for linka, planovano, bezi, vyrobeno, vadne in radky:
-        dostupnost = bezi / planovano                    # jak dlouho linka opravdu jela
-        vykon = vyrobeno / (bezi * CILOVY_VYKON)         # jak rychle jela oproti cíli
-        kvalita = (vyrobeno - vadne) / vyrobeno          # kolik sáčků bylo v pořádku
+        dostupnost = bezi / planovano
+        vykon = vyrobeno / (bezi * CILOVY_VYKON)
+        kvalita = (vyrobeno - vadne) / vyrobeno
         vysledek.append({
             "linka": linka, "dostupnost": dostupnost, "vykon": vykon, "kvalita": kvalita,
             "oee": dostupnost * vykon * kvalita, "vyrobeno": vyrobeno, "vadne": vadne,
@@ -70,11 +50,10 @@ def oee_linek(db):
 
 
 def najdi_problemy(db, linky):
-    """Projde data a vrátí seznam problémů srozumitelnými větami."""
     problemy = []
     prumer_oee = statistics.mean(l["oee"] for l in linky)
 
-    # a) Linky s OEE výrazně pod průměrem – a která složka je táhne dolů
+    # linky s OEE pod průměrem
     for l in linky:
         if l["oee"] < prumer_oee - 0.05:
             slozky = {"dostupnost": l["dostupnost"], "výkon": l["vykon"], "kvalita": l["kvalita"]}
@@ -82,7 +61,7 @@ def najdi_problemy(db, linky):
             problemy.append((1, "%s má OEE %.0f %% (průměr linek %.0f %%). Nejvíc ji táhne dolů %s."
                              % (l["linka"], l["oee"] * 100, prumer_oee * 100, nejhorsi)))
 
-    # b) Opakované krátké zastávky: stejný důvod mnohem častěji než na ostatních linkách
+    # krátké zastávky, které se opakují víc než na ostatních linkách
     pocty = db.execute("""SELECT duvod, linka, COUNT(*), AVG(minuty)
                           FROM prostoje GROUP BY duvod, linka""").fetchall()
     podle_duvodu = {}
@@ -96,7 +75,7 @@ def najdi_problemy(db, linky):
                                     "Jsou to krátké zastávky po %.1f min, které se snadno přehlédnou."
                                     % (linka, duvod, pocet, median, prumer_min)))
 
-    # c) Kvalita podle směn: směna s výrazně vyšším podílem vadných sáčků
+    # směna s víc vadnými sáčky
     smeny = db.execute("""SELECT linka, smena, 1.0 * SUM(vadne) / SUM(vyrobeno)
                           FROM vyroba GROUP BY linka, smena""").fetchall()
     podle_linky = {}
@@ -109,7 +88,7 @@ def najdi_problemy(db, linky):
                 problemy.append((3, "%s: na %s směně je %.1f %% vadných sáčků, na ostatních jen %.1f %%."
                                     % (linka, smena, podil * 100, statistics.mean(ostatni) * 100)))
 
-    # d) Velké poruchy: dlouhé zastávky (průměrně 10+ min), které za den daly aspoň 2 hodiny
+    # dlouhé poruchy (aspoň 2 h za den)
     dlouhe = db.execute("""SELECT linka, substr(cas, 1, 10) AS den, duvod, SUM(minuty) AS celkem
                            FROM prostoje GROUP BY linka, den, duvod
                            HAVING celkem >= 120 AND AVG(minuty) >= 10
@@ -120,11 +99,7 @@ def najdi_problemy(db, linky):
     return problemy
 
 
-# ---------------------------------------------------------------------------
-# 3) HTML report
-# ---------------------------------------------------------------------------
 def svg_graf(linky, problemove):
-    """Vodorovný sloupcový graf OEE. Linky s problémem jsou červeně."""
     radek, sirka = 30, 420
     casti = ['<svg viewBox="0 0 560 %d" width="100%%" role="img" aria-label="OEE linek">' % (len(linky) * radek + 10)]
     for i, l in enumerate(linky):
