@@ -1,0 +1,21 @@
+<!doctype html><html lang="cs"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Výkon balicích linek</title>
+<style>
+ body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:860px;margin:32px auto;padding:0 16px;color:#1f2933}
+ h1{margin-bottom:4px} .sub{color:#6b7280;margin-top:0}
+ .box{background:#fff7ed;border-left:4px solid #d97706;padding:12px 18px;border-radius:6px}
+ table{border-collapse:collapse;width:100%;margin:8px 0 24px} th,td{padding:6px 10px;border-bottom:1px solid #e5e7eb;text-align:right}
+ th:first-child,td:first-child{text-align:left} th{background:#f3f4f6}
+</style></head><body>
+<h1>Výkon balicích linek</h1>
+<p class="sub">Období 14. 10. 2026 – 21. 10. 2026 · 8 linek · report vytvořen automaticky skriptem analyza.py</p>
+<h2>Na co se podívat</h2>
+<div class="box"><ul><li>PP-03 má OEE 80 % (průměr linek 86 %). Nejvíc ji táhne dolů dostupnost.</li><li>PP-03: „Chyba váhy“ se opakuje 614× za týden (ostatní linky kolem 21×). Jsou to krátké zastávky po 1,5 min, které se snadno přehlédnou.</li><li>PP-06: na noční směně je 5,7 % vadných sáčků, na ostatních jen 0,6 %.</li><li>PP-07: 17. 10. stála kvůli „Porucha podavače“ celkem 5,0 h.</li></ul></div>
+<h2>OEE podle linek</h2>
+<svg viewBox="0 0 560 250" width="100%" role="img" aria-label="OEE linek"><text x="0" y="22" font-size="13">PP-01</text><rect x="60" y="7" width="369" height="20" rx="3" fill="#2e7d32"/><text x="435" y="22" font-size="13">88 %</text><text x="0" y="52" font-size="13">PP-02</text><rect x="60" y="37" width="370" height="20" rx="3" fill="#2e7d32"/><text x="436" y="52" font-size="13">88 %</text><text x="0" y="82" font-size="13">PP-03</text><rect x="60" y="67" width="337" height="20" rx="3" fill="#c0392b"/><text x="403" y="82" font-size="13">80 %</text><text x="0" y="112" font-size="13">PP-04</text><rect x="60" y="97" width="368" height="20" rx="3" fill="#2e7d32"/><text x="434" y="112" font-size="13">88 %</text><text x="0" y="142" font-size="13">PP-05</text><rect x="60" y="127" width="366" height="20" rx="3" fill="#2e7d32"/><text x="432" y="142" font-size="13">87 %</text><text x="0" y="172" font-size="13">PP-06</text><rect x="60" y="157" width="363" height="20" rx="3" fill="#c0392b"/><text x="429" y="172" font-size="13">87 %</text><text x="0" y="202" font-size="13">PP-07</text><rect x="60" y="187" width="357" height="20" rx="3" fill="#c0392b"/><text x="423" y="202" font-size="13">85 %</text><text x="0" y="232" font-size="13">PP-08</text><rect x="60" y="217" width="371" height="20" rx="3" fill="#2e7d32"/><text x="437" y="232" font-size="13">89 %</text></svg>
+<p class="sub">OEE = dostupnost × výkon × kvalita. Červeně jsou linky, u kterých analýza našla problém.</p>
+<table><tr><th>Linka</th><th>Dostupnost</th><th>Výkon</th><th>Kvalita</th><th>OEE</th><th>Vyrobeno sáčků</th><th>Vadných</th></tr><tr><td>PP-01</td><td>96 %</td><td>92 %</td><td>99,4 %</td><td><b>88 %</b></td><td>357 270</td><td>2 097</td></tr><tr><td>PP-02</td><td>96 %</td><td>92 %</td><td>99,4 %</td><td><b>88 %</b></td><td>357 688</td><td>2 019</td></tr><tr><td>PP-03</td><td>87 %</td><td>93 %</td><td>99,4 %</td><td><b>80 %</b></td><td>326 033</td><td>1 924</td></tr><tr><td>PP-04</td><td>96 %</td><td>92 %</td><td>99,4 %</td><td><b>88 %</b></td><td>355 639</td><td>2 138</td></tr><tr><td>PP-05</td><td>95 %</td><td>92 %</td><td>99,4 %</td><td><b>87 %</b></td><td>353 660</td><td>2 018</td></tr><tr><td>PP-06</td><td>96 %</td><td>92 %</td><td>97,7 %</td><td><b>87 %</b></td><td>357 265</td><td>8 070</td></tr><tr><td>PP-07</td><td>93 %</td><td>92 %</td><td>99,4 %</td><td><b>85 %</b></td><td>345 261</td><td>1 967</td></tr><tr><td>PP-08</td><td>96 %</td><td>93 %</td><td>99,4 %</td><td><b>89 %</b></td><td>358 894</td><td>2 025</td></tr></table>
+<h2>Nejčastější důvody prostojů</h2>
+<table><tr><th>Důvod</th><th>Počet zastávek</th><th>Celkem</th></tr><tr><td>Porucha senzoru</td><td>141×</td><td>20,8 h</td></tr><tr><td>Chyba váhy</td><td>754×</td><td>20,4 h</td></tr><tr><td>Výměna role fólie</td><td>127×</td><td>15,8 h</td></tr><tr><td>Prázdný zásobník dílků</td><td>118×</td><td>8,0 h</td></tr><tr><td>Zaseknutý dílek</td><td>138×</td><td>5,8 h</td></tr><tr><td>Porucha podavače</td><td>5×</td><td>5,0 h</td></tr></table>
+</body></html>
